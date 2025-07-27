@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EfikCoin Foundation Staking Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #0f4c75;
+            --secondary: #1b3a4b;
+            --accent: #4caf50;
+            --warning: #ff9800;
+            --dark: #1b262c;
+            --light: #f8f9fa;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --text-light: #e0f7fa;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--light);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo i {
+            font-size: 36px;
+            color: var(--accent);
+        }
+        
+        .logo h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(to right, #a1c4fd, #c2e9fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .security-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--accent);
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card-header h2 {
+            font-size: 1.4rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .stat {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 15px 0;
+            color: var(--accent);
+        }
+        
+        .stat-label {
+            color: #90caf9;
+            font-size: 0.95rem;
+        }
+        
+        .chart-container {
+            height: 250px;
+            margin-top: 20px;
+        }
+        
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .wallet-section {
+            background: rgba(15, 76, 117, 0.3);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .wallet-info {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .wallet-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .wallet-item:last-child {
+            border-bottom: none;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            width: 100%;
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #2e7d32);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2e7d32, var(--accent));
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+        }
+        
+        .kyc-section {
+            background: rgba(255, 152, 0, 0.1);
+            border-left: 4px solid var(--warning);
+            padding: 20px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #c2e9fb;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+        
+        .recovery-phrase {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .phrase-word {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .activity-log {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .log-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .log-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(30, 136, 229, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #4facfe;
+        }
+        
+        .log-content {
+            flex-grow: 1;
+        }
+        
+        .log-content h4 {
+            margin-bottom: 5px;
+            color: white;
+        }
+        
+        .log-time {
+            font-size: 0.85rem;
+            color: #90caf9;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+        
+        .status-verified {
+            background: rgba(76, 175, 80, 0.2);
+            color: var(--accent);
+        }
+        
+        .status-pending {
+            background: rgba(255, 152, 0, 0.2);
+            color: var(--warning);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #90caf9;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 30px;
+        }
+        
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .recovery-phrase {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-coins"></i>
+                <h1>EfikCoin Foundation Staking</h1>
+            </div>
+            <div class="security-badge">
+                <i class="fas fa-shield-alt"></i>
+                <span>Secured Platform • KYC Verified</span>
+            </div>
+        </header>
+        
+        <div class="dashboard">
+            <div class="main-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-wallet"></i> Wallet Overview</h2>
+                    </div>
+                    <div class="stat">12,450 EFIK</div>
+                    <div class="stat-label">≈ $4,235.60 USD</div>
+                    
+                    <div class="wallet-info">
+                        <div class="wallet-item">
+                            <span>Staked Balance</span>
+                            <strong>8,200 EFIK</strong>
+                        </div>
+                        <div class="wallet-item">
+                            <span>Available Balance</span>
+                            <strong>4,250 EFIK</strong>
+                        </div>
+                        <div class="wallet-item">
+                            <span>Daily Rewards</span>
+                            <strong>32.8 EFIK</strong>
+                        </div>
+                        <div class="wallet-item">
+                            <span>APY</span>
+                            <strong>14.7%</strong>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary">
+                        <i class="fas fa-sync-alt"></i> Refresh Balance
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-chart-line"></i> Earnings Overview</h2>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="earningsChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-lock"></i> Security Center</h2>
+                    </div>
+                    
+                    <div class="kyc-section">
+                        <h3><i class="fas fa-user-check"></i> KYC Verification</h3>
+                        <p>Complete identity verification to unlock full platform features</p>
+                        <div class="status-badge status-verified">
+                            <i class="fas fa-badge-check"></i> Verified
+                        </div>
+                    </div>
+                    
+                    <h3 style="margin: 20px 0 15px;"><i class="fas fa-key"></i> Recovery Phrase</h3>
+                    <div class="recovery-phrase">
+                        <div class="phrase-word">elephant</div>
+                        <div class="phrase-word">forest</div>
+                        <div class="phrase-word">breeze</div>
+                        <div class="phrase-word">guitar</div>
+                        <div class="phrase-word">planet</div>
+                        <div class="phrase-word">mirror</div>
+                        <div class="phrase-word">sunset</div>
+                        <div class="phrase-word">crystal</div>
+                        <div class="phrase-word">journey</div>
+                    </div>
+                    <p style="color: #ff9800; margin-top: 10px;">
+                        <i class="fas fa-exclamation-triangle"></i> Never share your recovery phrase with anyone!
+                    </p>
+                    
+                    <button class="btn btn-outline" style="margin-top: 20px;">
+                        <i class="fas fa-redo"></i> Generate New Phrase
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-history"></i> Recent Activity</h2>
+                    </div>
+                    <div class="activity-log">
+                        <div class="log-item">
+                            <div class="log-icon">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                            <div class="log-content">
+                                <h4>Staking Reward Received</h4>
+                                <p>+32.8 EFIK added to your wallet</p>
+                                <div class="log-time">2 hours ago</div>
+                            </div>
+                        </div>
+                        
+                        <div class="log-item">
+                            <div class="log-icon">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <div class="log-content">
+                                <h4>Security Update</h4>
+                                <p>Recovery phrase regenerated</p>
+                                <div class="log-time">Yesterday</div>
+                            </div>
+                        </div>
+                        
+                        <div class="log-item">
+                            <div class="log-icon">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <div class="log-content">
+                                <h4>Account Secured</h4>
+                                <p>Two-factor authentication enabled</p>
+                                <div class="log-time">2 days ago</div>
+                            </div>
+                        </div>
+                        
+                        <div class="log-item">
+                            <div class="log-icon">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <div class="log-content">
+                                <h4>Staking Increased</h4>
+                                <p>You staked an additional 500 EFIK</p>
+                                <div class="log-time">3 days ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-user-cog"></i> KYC Verification</h2>
+                    </div>
+                    
+                    <div class="status-badge status-verified" style="margin-bottom: 20px;">
+                        <i class="fas fa-badge-check"></i> Identity Verified
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <div class="form-control">John Efik</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>ID Number</label>
+                        <div class="form-control">EFK-789456123</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Verification Status</label>
+                        <div class="form-control">Verified on July 11, 2025</div>
+                    </div>
+                    
+                    <button class="btn btn-primary">
+                        <i class="fas fa-qrcode"></i> View Digital ID
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-hard-hat"></i> Mining Pool</h2>
+                    </div>
+                    
+                    <div class="wallet-item">
+                        <span>Total Staked</span>
+                        <strong>8,200 EFIK</strong>
+                    </div>
+                    
+                    <div class="wallet-item">
+                        <span>Network Hashrate</span>
+                        <strong>245 MH/s</strong>
+                    </div>
+                    
+                    <div class="wallet-item">
+                        <span>Active Miners</span>
+                        <strong>1,892</strong>
+                    </div>
+                    
+                    <div class="wallet-item">
+                        <span>Pool Uptime</span>
+                        <strong>99.8%</strong>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>Stake Additional EFIK</label>
+                        <input type="number" class="form-control" placeholder="Enter amount">
+                    </div>
+                    
+                    <button class="btn btn-primary">
+                        <i class="fas fa-lock"></i> Stake Funds
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-shield-alt"></i> Security Status</h2>
+                    </div>
+                    
+                    <div class="wallet-item">
+                        <span>Phrase Lock</span>
+                        <strong style="color: var(--accent);">Active</strong>
+                    </div>
+                    
+                    <div class="wallet-item">
+                        <span>2FA Protection</span>
+                        <strong style="color: var(--accent);">Enabled</strong>
+                    </div>
+                    
+                    <div class="wallet-item">
+                        <span>Last Security Scan</span>
+                        <strong>Today, 08:45 AM</strong>
+                    </div>
+                    
+                    <button class="btn btn-outline" style="margin-top: 20px;">
+                        <i class="fas fa-shield-virus"></i> Run Security Scan
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2025 EfikCoin Foundation Staking. All rights reserved.</p>
+            <p>Secure • Transparent • Trusted</p>
+        </footer>
+    </div>
+
+    <script>
+        // Initialize earnings chart
+        const ctx = document.getElementById('earningsChart').getContext('2d');
+        const earningsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                datasets: [{
+                    label: 'EFIK Earnings',
+                    data: [1200, 1900, 1500, 2200, 1800, 2500, 3200],
+                    borderColor: '#4caf50',
+                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    pointBorderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#90caf9'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#90caf9'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Simulate live data updates
+        function updateLiveData() {
+            // Simulate changing balance
+            const balanceElement = document.querySelector('.stat');
+            const currentBalance = parseFloat(balanceElement.textContent.replace(/,/g, ''));
+            const newBalance = (currentBalance + 0.5).toFixed(2);
+            balanceElement.textContent = new Intl.NumberFormat().format(newBalance) + ' EFIK';
+            
+            // Simulate new activity
+            const activityLog = document.querySelector('.activity-log');
+            const newActivity = document.createElement('div');
+            newActivity.className = 'log-item';
+            newActivity.innerHTML = `
+                <div class="log-icon">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <div class="log-content">
+                    <h4>Mining Reward</h4>
+                    <p>+0.5 EFIK added to your wallet</p>
+                    <div class="log-time">Just now</div>
+                </div>
+            `;
+            activityLog.insertBefore(newActivity, activityLog.firstChild);
+            
+            // Keep log to 5 items max
+            if (activityLog.children.length > 5) {
+                activityLog.removeChild(activityLog.lastChild);
+            }
+        }
+        
+        // Update data every 30 seconds
+        setInterval(updateLiveData, 30000);
+        
+        // Initial update
+        setTimeout(updateLiveData, 5000);
+    </script>
+</body>
+  </html>
